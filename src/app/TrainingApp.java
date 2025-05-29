@@ -1,47 +1,53 @@
 package app;
 
-import model.Training;
-import service.TrainingManager;
-import util.InputHelper;
+import model.Training; // Klasa reprezentująca pojedynczy trening (typ, dystans, czas, data)
+import service.TrainingManager; // Klasa zarządzająca listą treningów (dodawanie, usuwanie, sortowanie itp.)
+import util.InputHelper; // Klasa pomocnicza do odczytu danych od użytkownika (zabezpieczenia i walidacja)
 
-import java.io.*;
+import java.io.*; // Obsługa operacji wejścia/wyjścia (np. zapis/odczyt pliku)
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Główna klasa aplikacji do zarządzania treningami.
+ * Obsługuje menu, zapis i odczyt danych z pliku oraz wszystkie interakcje z użytkownikiem.
+ */
 public class TrainingApp {
-    private static final String FILE_NAME = "trainings.csv";
-    private static TrainingManager manager = new TrainingManager();
+    private static final String FILE_NAME = "trainings.csv"; // Nazwa pliku do zapisu/wczytywania danych
+    private static TrainingManager manager = new TrainingManager(); // Obiekt zarządzający treningami
 
+    // Liczniki operacji wykonywanych w czasie działania programu
     private static int addCount = 0;
     private static int searchCount = 0;
     private static int editCount = 0;
 
     public static void main(String[] args) {
-        long startTime = System.currentTimeMillis();
+        long startTime = System.currentTimeMillis(); // Pomiar czasu działania programu
 
-        loadTrainingsFromFile();
+        loadTrainingsFromFile(); // Wczytanie danych z pliku CSV do pamięci
 
         boolean running = true;
         while (running) {
-            printMenu();
-            String choice = InputHelper.readLine("");
+            printMenu(); // Wyświetlenie opcji dla użytkownika
+            String choice = InputHelper.readLine(""); // Pobranie wyboru użytkownika
 
+            // Obsługa menu na podstawie wyboru
             switch (choice) {
-                case "1": addTraining(); break;
-                case "2": displayTrainings(manager.getAllTrainings()); break;
-                case "3": manager.sortByDate(); displayTrainings(manager.getAllTrainings()); break;
-                case "4": manager.sortByDuration(); displayTrainings(manager.getAllTrainings()); break;
-                case "5": searchByType(); break;
-                case "6": editTraining(); break;
-                case "7": deleteTraining(); break;
-                case "8": showStatistics(); break;
+                case "1": addTraining(); break; // Dodaj nowy trening
+                case "2": displayTrainings(manager.getAllTrainings()); break; // Wyświetl wszystkie treningi
+                case "3": manager.sortByDate(); displayTrainings(manager.getAllTrainings()); break; // Sortowanie po dacie
+                case "4": manager.sortByDuration(); displayTrainings(manager.getAllTrainings()); break; // Sortowanie po czasie trwania
+                case "5": searchByType(); break; // Wyszukiwanie treningów po typie
+                case "6": editTraining(); break; // Edycja wybranego treningu
+                case "7": deleteTraining(); break; // Usuwanie treningu
+                case "8": showStatistics(); break; // Wyświetlenie statystyk (suma km, średni czas)
                 case "9": 
-                    saveTrainingsToFile(); 
-                    running = false;
+                    saveTrainingsToFile(); // Zapis danych do pliku
+                    running = false; // Zakończenie działania programu
                     long endTime = System.currentTimeMillis();
                     System.out.printf("Czas działania programu: %.2f sekundy\n",
-                            (endTime - startTime) / 1000.0);
-                    showOperationCounts();
+                            (endTime - startTime) / 1000.0); // Wyświetlenie czasu działania
+                    showOperationCounts(); // Wyświetlenie liczby wykonanych operacji
                     System.out.println("Zapisano dane. Kończę program."); 
                     break;
                 default: System.out.println("Nieprawidłowy wybór. Spróbuj ponownie.");
@@ -49,8 +55,9 @@ public class TrainingApp {
         }
     }
 
+    // Wyświetla menu główne
     private static void printMenu() {
-        System.out.println("\n=== MENU ===");
+        System.out.println("\n=== Opcje ===");
         System.out.println("1. Dodaj trening");
         System.out.println("2. Wyświetl wszystkie treningi");
         System.out.println("3. Posortuj treningi po dacie");
@@ -63,6 +70,7 @@ public class TrainingApp {
         System.out.print("Wybierz opcję: ");
     }
 
+    // Dodaje nowy trening na podstawie danych od użytkownika
     private static void addTraining() {
         String type = InputHelper.readLine("Typ treningu: ");
         double distance = InputHelper.readPositiveDouble("Dystans (km): ");
@@ -75,6 +83,7 @@ public class TrainingApp {
         System.out.println("Dodano trening.");
     }
 
+    // Wyświetla listę treningów w formie tabeli
     private static void displayTrainings(List<Training> list) {
         if (list.isEmpty()) {
             System.out.println("Brak treningów.");
@@ -88,6 +97,7 @@ public class TrainingApp {
         }
     }
 
+    // Wyszukiwanie treningów po typie (np. bieganie, rower)
     private static void searchByType() {
         String type = InputHelper.readLine("Podaj typ treningu do wyszukania: ");
         List<Training> result = manager.searchByType(type);
@@ -100,6 +110,7 @@ public class TrainingApp {
         searchCount++;
     }
 
+    // Edycja istniejącego treningu na liście
     private static void editTraining() {
         displayTrainings(manager.getAllTrainings());
         int index = InputHelper.readPositiveInt("Podaj numer treningu do edycji: ") - 1;
@@ -118,6 +129,7 @@ public class TrainingApp {
         }
     }
 
+    // Usunięcie treningu z listy
     private static void deleteTraining() {
         displayTrainings(manager.getAllTrainings());
         int index = InputHelper.readPositiveInt("Podaj numer treningu do usunięcia: ") - 1;
@@ -128,11 +140,13 @@ public class TrainingApp {
         }
     }
 
+    // Pokazuje statystyki: łączny dystans i średni czas treningów
     private static void showStatistics() {
         System.out.printf("Suma kilometrów: %.2f km\n", manager.totalDistance());
         System.out.printf("Średni czas treningu: %.2f minut\n", manager.averageDuration());
     }
 
+    // Wyświetla liczbę dodanych, edytowanych i wyszukanych treningów
     private static void showOperationCounts() {
         System.out.println("\n=== Liczba wykonanych operacji ===");
         System.out.printf("Dodano treningów: %d\n", addCount);
@@ -140,6 +154,7 @@ public class TrainingApp {
         System.out.printf("Edytowano treningów: %d\n", editCount);
     }
 
+    // Wczytuje treningi z pliku CSV przy uruchomieniu programu
     private static void loadTrainingsFromFile() {
         File file = new File(FILE_NAME);
         if (!file.exists()) {
@@ -167,10 +182,11 @@ public class TrainingApp {
         }
     }
 
+    // Zapisuje treningi do pliku CSV przy zakończeniu działania programu
     private static void saveTrainingsToFile() {
         try (PrintWriter pw = new PrintWriter(new FileWriter(FILE_NAME))) {
             for (Training t : manager.getAllTrainings()) {
-                pw.println(t.toString());
+                pw.println(t.toString()); // W toString() trening formatuje się do CSV
             }
         } catch (IOException e) {
             System.out.println("Błąd zapisu do pliku: " + e.getMessage());
